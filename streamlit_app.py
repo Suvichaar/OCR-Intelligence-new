@@ -1,5 +1,5 @@
 import os
-import sys  # Add this import
+import sys
 import tempfile
 import subprocess
 from pathlib import Path
@@ -27,9 +27,9 @@ def get_env_from_secrets() -> dict:
     
     return env
 
-def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, bytes, str, str, str]:
+def run_ocr(pdf_bytes: bytes, filename: str, backend: str, title: str | None) -> tuple[bytes, bytes, str, str, str]:
     """
-    Save uploaded PDF to a temp file, run mistral_ocr-v6.py (hybrid approach),
+    Save uploaded PDF to a temp file, run mistral_ocr-v5.py with selected backend,
     and return (md_bytes, docx_bytes, md_filename, docx_filename, logs).
     Returns file contents as bytes to avoid temp directory cleanup issues.
     """
@@ -43,17 +43,26 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
         # Out base (without extension)
         out_base = td_path / "out_streamlit"
 
-        # mistral_ocr-v6.py is in the same directory (root)
-        script_path = BASE_DIR / "mistral_ocr-v6.py"
+        # Use v5 which supports --backend option
+        # Check if mistral_ocr-v5.py exists, otherwise use v6 (hybrid)
+        script_path = BASE_DIR / "mistral_ocr-v5.py"
+        if not script_path.exists():
+            # Fallback to v6 if v5 doesn't exist
+            script_path = BASE_DIR / "mistral_ocr-v6.py"
+            backend = None  # v6 doesn't support --backend
         
         # Use sys.executable to use the same Python interpreter as Streamlit
         cmd = [
-            sys.executable,  # Changed from "python" to sys.executable
+            sys.executable,
             str(script_path),
             str(pdf_path),
             "--out",
             str(out_base),
         ]
+        
+        # Add --backend only if using v5 (which supports it)
+        if backend:
+            cmd += ["--backend", backend]
 
         if title:
             cmd += ["--title", title]
@@ -81,7 +90,7 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
                 f"OCR script failed with code {p.returncode}.\n\nSTDERR:\n{p.stderr[:4000]}"
             )
 
-        # mistral_ocr-v6 writes <out>.md and <out>.docx
+        # mistral_ocr-v5/v6 writes <out>.md and <out>.docx
         md_path = out_base.with_suffix(".md")
         docx_path = out_base.with_suffix(".docx")
 
@@ -102,7 +111,7 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
         return md_bytes, docx_bytes, md_filename, docx_filename, "\n".join(logs)
 
 def main():
-    st.set_page_config(page_title="Mistral OCR – Hybrid DOCX", layout="centered")
+    st.set_page_config(page_title="Suvichaar Docx Intelligence", layout="centered")
 
     st.title("📄 Suvichaar Docx Intelligence")
     st.write(
@@ -131,19 +140,43 @@ def main():
 
     uploaded_file = st.file_uploader("Upload PDF", type=["pdf"])
 
+    # Backend selection
+    st.write("### Choose Backend")
+    backend_choice = st.radio(
+        "Document type",
+        options=[
+            "Python-Docx (for PDFs with heavy tables)",
+            "Pandoc (for PDFs with heavy mathematical formulas)"
+        ],
+        index=0,
+        help=(
+            "**Python-Docx**: Better table formatting, alignment, and styling for documents with many tables.\n\n"
+            "**Pandoc**: Better mathematical formula handling for documents with LaTeX-style math formulas."
+        ),
+    )
+    
+    # Map choice to backend
+    if "Python-Docx" in backend_choice:
+        backend = "python-docx"
+        backend_display = "Python-Docx"
+    else:
+        backend = "pandoc"
+        backend_display = "Pandoc"
+    
+    st.write("---")
+
     # Title input
     title = st.text_input("Optional title for the document (H1 in markdown/DOCX)", "")
-    
-    st.caption("Using hybrid approach: Pandoc (math) + python-docx (tables)")
 
     run_btn = st.button("Run OCR", type="primary", disabled=uploaded_file is None)
 
     if run_btn and uploaded_file is not None:
         try:
-            with st.spinner("Running OCR with hybrid approach (Pandoc + python-docx)..."):
+            with st.spinner(f"Running OCR using {backend_display} backend..."):
                 md_bytes, docx_bytes, md_filename, docx_filename, logs = run_ocr(
                     pdf_bytes=uploaded_file.read(),
                     filename=uploaded_file.name,
+                    backend=backend,
                     title=title or None,
                 )
 
