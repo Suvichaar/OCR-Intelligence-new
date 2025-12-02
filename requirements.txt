@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+requests
+pillow
+pymupdf
+python-docx
+pypandoc   # optional; your script will fall back if not present
+python-multipart
+streamlit
