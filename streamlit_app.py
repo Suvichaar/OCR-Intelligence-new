@@ -115,7 +115,7 @@ def main():
 
     st.title("📄 Suvichaar Docx Intelligence")
     st.write(
-        "Don't upload more than 13 pages"
+        "Don't upload pdfs more than 13 pages"
     )
 
     # Check if secrets are configured
@@ -226,4 +226,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
