@@ -1,13 +1,12 @@
 import os
+import sys  # Add this import
 import tempfile
 import subprocess
 from pathlib import Path
 
 import streamlit as st
 
-
 BASE_DIR = Path(__file__).parent.resolve()
-
 
 def get_env_from_secrets() -> dict:
     """Get environment variables from Streamlit secrets"""
@@ -28,7 +27,6 @@ def get_env_from_secrets() -> dict:
     
     return env
 
-
 def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, bytes, str, str, str]:
     """
     Save uploaded PDF to a temp file, run mistral_ocr-v6.py (hybrid approach),
@@ -45,12 +43,12 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
         # Out base (without extension)
         out_base = td_path / "out_streamlit"
 
-        # Use v6 from app folder (hybrid approach: Pandoc + python-docx)
-        # BASE_DIR is app/, so script is in same folder
+        # mistral_ocr-v6.py is in the same directory (root)
         script_path = BASE_DIR / "mistral_ocr-v6.py"
         
+        # Use sys.executable to use the same Python interpreter as Streamlit
         cmd = [
-            "python",
+            sys.executable,  # Changed from "python" to sys.executable
             str(script_path),
             str(pdf_path),
             "--out",
@@ -69,7 +67,7 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
             cmd,
             capture_output=True,
             text=True,
-            cwd=str(BASE_DIR),  # Run from app folder
+            cwd=str(BASE_DIR),  # Run from root directory
             env=env,  # Pass secrets as environment variables
         )
 
@@ -103,13 +101,14 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
 
         return md_bytes, docx_bytes, md_filename, docx_filename, "\n".join(logs)
 
-
 def main():
-    st.set_page_config(page_title="Suvichaar Docx Intelligence", layout="centered")
-    st.title("📄Suvichaar Docx Intelligence")
+    st.set_page_config(page_title="Mistral OCR – Hybrid DOCX", layout="centered")
+
+    st.title("📄 Suvichaar Docx Intelligence")
     st.write(
         "Don't upload more than 10 pages"
     )
+
     # Check if secrets are configured
     try:
         if "mistral" not in st.secrets or "api_key" not in st.secrets["mistral"]:
@@ -117,7 +116,7 @@ def main():
             st.info(
                 "Please set up `.streamlit/secrets.toml` with your Mistral API credentials.\n\n"
                 "Example:\n"
-                "```toml\n"
+                "\n"
                 "[mistral]\n"
                 'ocr_endpoint = "https://your-endpoint.services.ai.azure.com/providers/mistral/azure/ocr"\n'
                 'api_key = "your_api_key_here"\n'
@@ -192,11 +191,5 @@ def main():
             st.error(f"❌ Error during OCR: {e}")
             st.exception(e)
 
-
 if __name__ == "__main__":
     main()
-
-
-
-
-
