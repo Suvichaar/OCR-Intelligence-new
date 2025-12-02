@@ -107,12 +107,7 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
 def main():
     st.set_page_config(page_title="Mistral OCR – Hybrid DOCX", layout="centered")
 
-    st.title("📄 Mistral OCR – Hybrid DOCX Generator")
-    st.write(
-        "Upload a PDF to convert it to Markdown and DOCX. "
-        "Uses **hybrid approach**: Pandoc for math formulas + python-docx for better table formatting."
-    )
-
+    st.title("📄Suvichaar Docx Intelligence")
     # Check if secrets are configured
     try:
         if "mistral" not in st.secrets or "api_key" not in st.secrets["mistral"]:
@@ -198,4 +193,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
