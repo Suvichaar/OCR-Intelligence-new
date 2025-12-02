@@ -106,10 +106,10 @@ def run_ocr(pdf_bytes: bytes, filename: str, title: str | None) -> tuple[bytes, 
 
 def main():
     st.set_page_config(page_title="Mistral OCR – Hybrid DOCX", layout="centered")
+    st.title("📄Suvichaar Docx Intelligence")
     st.write(
         "Don't upload more than 10 pages"
     )
-    st.title("📄Suvichaar Docx Intelligence")
     # Check if secrets are configured
     try:
         if "mistral" not in st.secrets or "api_key" not in st.secrets["mistral"]:
@@ -195,6 +195,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
