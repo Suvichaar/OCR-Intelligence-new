@@ -166,7 +166,7 @@ def main():
     st.write("---")
 
     # Title input
-    title = st.text_input("Optional title for the document (H1 in markdown/DOCX)", "")
+    title = st.text_input("Optional title for the document", "")
 
     run_btn = st.button("Run OCR", type="primary", disabled=uploaded_file is None)
 
@@ -226,6 +226,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
