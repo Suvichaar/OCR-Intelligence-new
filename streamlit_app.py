@@ -145,13 +145,13 @@ def main():
     backend_choice = st.radio(
         "Document type",
         options=[
-            "Python-Docx (for PDFs with heavy tables)",
-            "Pandoc (for PDFs with heavy mathematical formulas)"
+            "PDFs with heavy tables",
+            "PDFs with heavy mathematical formulas"
         ],
         index=0,
         help=(
-            "**Python-Docx**: Better table formatting, alignment, and styling for documents with many tables.\n\n"
-            "**Pandoc**: Better mathematical formula handling for documents with LaTeX-style math formulas."
+            "**PDFs with heavy tables**: Better table formatting, alignment, and styling for documents with many tables.\n\n"
+            "**PDFs with heavy mathematical formulas**: Better mathematical formula handling for documents with LaTeX-style math formulas."
         ),
     )
     
@@ -226,5 +226,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
